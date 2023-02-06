@@ -19,7 +19,7 @@ Unpack and run.
 example:
 ```
 nostr-contacts backup --relay wss://nostr21.com --relay wss://nostr-pub.wellorder.net --pubkey npub1xxx
-``
+```
 
 ### Contacts backup .txt file
 
