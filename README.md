@@ -8,14 +8,25 @@ See [*nostr* protocol](https://github.com/nostr-protocol).
 
 ### features
 
-- [x] backup contacts as a flat .txt file
-- [ ] restore contacts from file
+- [x] Support Linux / Mac / Windows
+- [x] Backup contacts as a flat .txt file
+- [ ] Restore contacts from a backup
 
-### [download a release](https://github.com/jeremyd/nostr-contacts/releases) from github.
+### [Download the release](https://github.com/jeremyd/nostr-contacts/releases) from github.
 
-unpack and run.
+set your PUBLIC or PRIVATE key as an environment variable.
+```
+# public key supports npub or hex
+export NOSTR_PUBLIC=npub1xxxxx
 
-contacts will be saved in contacts-(unix timestamp).txt
+# private key supports nsec or hex
+export NOSTR_PRIVATE=nsec1xxxxx
+```
 
-### install from source
-soon
+Unpack and run.
+
+### Contacts backup .txt file
+
+Contacts will be saved in contacts-(unix timestamp).txt
+
+This file contains a list of the pubkeys of your follows (one per line).

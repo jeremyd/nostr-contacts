@@ -35,7 +35,12 @@ func main() {
 	var privatek string
 
 	if isSet {
-		privatek = sk
+		if sk[:4] == "nsec" {
+			_, v, _ := nip19.Decode(sk)
+			privatek = v.(string)
+		} else {
+			privatek = sk
+		}
 		pub, _ := nostr.GetPublicKey(privatek)
 		npub, _ = nip19.EncodePublicKey(pub)
 	} else if isSetPub {
