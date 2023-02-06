@@ -14,19 +14,15 @@ See [*nostr* protocol](https://github.com/nostr-protocol).
 
 ### [Download the release](https://github.com/jeremyd/nostr-contacts/releases) from github.
 
-set your PUBLIC or PRIVATE key as an environment variable.
-```
-# public key supports npub or hex
-export NOSTR_PUBLIC=npub1xxxxx
-
-# private key supports nsec or hex
-export NOSTR_PRIVATE=nsec1xxxxx
-```
-
 Unpack and run.
+
+example:
+```
+nostr-contacts backup --relay wss://nostr21.com --relay wss://nostr-pub.wellorder.net --pubkey npub1xxx
+``
 
 ### Contacts backup .txt file
 
-Contacts will be saved in contacts-(unix timestamp).txt
+Contacts will be saved in contacts-(pubkey)-(unix timestamp).txt in the current directory.
 
 This file contains a list of the pubkeys of your follows (one per line).
