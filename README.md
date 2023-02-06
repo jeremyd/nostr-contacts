@@ -16,7 +16,12 @@ See [*nostr* protocol](https://github.com/nostr-protocol).
 
 Unpack and run.
 
-example:
+help:
+```
+nostr-contacts --help
+```
+
+example backing up contacts:
 ```
 nostr-contacts backup --relay wss://nostr21.com --relay wss://nostr-pub.wellorder.net --pubkey npub1xxx
 ```
