@@ -114,6 +114,7 @@ var backupCmd = &cobra.Command{
 						// Contact List
 						pTags := []string{"p"}
 						allPTags := ev.Tags.GetAll(pTags)
+						fmt.Printf("(%d) contacts found on relay: %-30s\n", len(allPTags), relay.URL)
 						for _, tag := range allPTags {
 							contactsChannel <- tag[1]
 						}
@@ -127,7 +128,7 @@ var backupCmd = &cobra.Command{
 			for i, sub := range allSubs {
 				relayURL := sub.Relay.URL
 				<-sub.EndOfStoredEvents
-				fmt.Printf("Contact list received from %-30s (%d of %d).\n", relayURL, i+1, len(allSubs))
+				fmt.Printf(">%-30s status: complete (relay %d of %d).\n", relayURL, i+1, len(allSubs))
 			}
 			eoseCompleted = true
 
