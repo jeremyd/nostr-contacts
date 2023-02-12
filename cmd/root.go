@@ -27,6 +27,8 @@ func Execute() {
 func init() {
 	rootCmd.PersistentFlags().StringSlice("relay", []string{"wss://nostr-pub.wellorder.net"}, "--relay wss://nostr-pub.wellorder.net")
 	rootCmd.PersistentFlags().String("pubkey", "", "--pubkey npub1xxxx")
+	rootCmd.PersistentFlags().String("file", "", "--file <filename to backup/restore>")
 	viper.BindPFlag("relay", rootCmd.PersistentFlags().Lookup("relay"))
 	viper.BindPFlag("pubkey", rootCmd.PersistentFlags().Lookup("pubkey"))
+	viper.BindPFlag("file", rootCmd.PersistentFlags().Lookup("file"))
 }
