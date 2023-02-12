@@ -16,17 +16,17 @@ See [*nostr* protocol](https://github.com/nostr-protocol).
 
 Unpack and run.
 
-help:
+### help:
 ```
 nostr-contacts --help
 ```
 
-example backing up contacts:
+### example backing up contacts:
 ```
 nostr-contacts backup --relay wss://nostr21.com --relay wss://nostr-pub.wellorder.net --pubkey npub1xxx
 ```
 
-example restoring contacts:
+### example restoring contacts:
 ```
 export NOSTR_PRIVATE=<your private key>
 # this will prompt for confirmation before broadcasting
