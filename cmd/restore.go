@@ -97,6 +97,16 @@ var restoreCmd = &cobra.Command{
 		// calling Sign sets the event ID field and the event Sig field
 		ev.Sign(privatek)
 
+		fmt.Printf("Are you SURE you want to broadcast your contacts list of (%d)follows to (%d)relays? (y/n)\n", len(ev.Tags), len(relays))
+		var ok []byte = make([]byte, 1)
+		os.Stdin.Read(ok)
+		for _, c := range ok {
+			if c != 'y' {
+				fmt.Println("Exiting..")
+				os.Exit(1)
+			}
+		}
+
 		//log(fmt.Sprintf("%v", ev))
 
 		go func() {
