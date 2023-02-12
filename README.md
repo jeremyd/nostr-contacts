@@ -6,7 +6,7 @@ A command line tool for making a backup of your #nostr contact list.
 
 See [*nostr* protocol](https://github.com/nostr-protocol).
 
-### features
+### Features
 
 - [x] Support Linux / Mac / Windows
 - [x] Backup contacts as a flat .txt file
@@ -33,11 +33,8 @@ export NOSTR_PRIVATE=<your private key>
 nostr-contacts restore --file <path to backup.txt> --relay wss://nostr-pub.wellorder.net
 ```
 
-### Contacts Backup .txt file
+### Contacts Backup .txt file format
 
 Contacts will be saved in contacts-(pubkey)-(unix timestamp).txt in the current directory.
 
 This file contains a list of the pubkeys of your follows (one per line).
-
-### Contacts Restore
-Contacts can be restored from any backup by specifying --file on the command line and the list of relays that you'd like to broadcast to.
