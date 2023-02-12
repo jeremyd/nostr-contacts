@@ -12,38 +12,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-func removeDupes(stringSlice []string) []string {
-	keys := make(map[string]bool)
-	list := []string{}
-	for _, entry := range stringSlice {
-		if _, value := keys[entry]; !value {
-			keys[entry] = true
-			list = append(list, entry)
-		}
-	}
-	return list
-}
-
-func decodePub(pk string) string {
-	var pub string
-	var npub string
-	if pk[:4] == "npub" {
-		_, v, err := nip19.Decode(pk)
-		if err != nil {
-			fmt.Printf("could not decode pubkey for %s", pk)
-			os.Exit(1)
-		}
-		pub = v.(string)
-		npub = pk
-	} else {
-		pub = pk
-		npub, _ = nip19.EncodePublicKey(pub)
-	}
-	fmt.Println("pubkey:", pub)
-	fmt.Println("npub:", npub)
-	return pub
-}
-
 var backupCmd = &cobra.Command{
 	Use:   "backup",
 	Short: "Backup contact list",
@@ -52,6 +20,7 @@ var backupCmd = &cobra.Command{
 
 		sk, isSet := os.LookupEnv("NOSTR_PRIVATE")
 		pk, isSetPub := os.LookupEnv("NOSTR_PUBLIC")
+
 		cmdOptPub := viper.IsSet("pubkey")
 
 		if !isSet && !isSetPub && !cmdOptPub {
@@ -92,29 +61,59 @@ var backupCmd = &cobra.Command{
 
 		var allSubs []*nostr.Subscription
 		var allRelays []*nostr.Relay
-
 		var allContact []string
 
 		contactsChannel := make(chan string)
+		relaysChannel := make(chan *nostr.Relay)
+		subsChannel := make(chan *nostr.Subscription)
 
 		fmt.Println("Waiting up to 10 seconds for all relays to respond...")
+
+		go func() {
+			for {
+				r := <-relaysChannel
+				allRelays = append(allRelays, r)
+				relayURL := r.URL
+				log(fmt.Sprintf("> %-30s connected.", relayURL))
+			}
+		}()
+
+		go func() {
+			for {
+				s := <-subsChannel
+				allSubs = append(allSubs, s)
+				relayURL := s.Relay.URL
+				<-s.EndOfStoredEvents
+				log(fmt.Sprintf("> %-30s status: query complete.", relayURL))
+			}
+		}()
 
 		for _, r := range relays {
 			relay, err := nostr.RelayConnect(ctx, r)
 			if err != nil {
-				fmt.Printf("failed initial connection to relay: %s, %s; skipping relay\n", r, err)
+				log(fmt.Sprintf("failed initial connection to relay: %s, %s; skipping relay.", r, err))
 				continue
 			}
 			sub := relay.Subscribe(ctx, filters)
-			allSubs = append(allSubs, sub)
-			allRelays = append(allRelays, relay)
+
+			go func() {
+				subsChannel <- sub
+				relaysChannel <- relay
+			}()
+
+			go func() {
+				for n := range relay.Notices {
+					log(fmt.Sprintf("notice from %s: %s", relay.URL, n))
+				}
+			}()
+
 			go func() {
 				for ev := range sub.Events {
 					if ev.Kind == 3 {
 						// Contact List
 						pTags := []string{"p"}
 						allPTags := ev.Tags.GetAll(pTags)
-						fmt.Printf("(%d) contacts found on relay: %-30s\n", len(allPTags), relay.URL)
+						log(fmt.Sprintf("(%d) contacts found on relay: %-30s", len(allPTags), relay.URL))
 						for _, tag := range allPTags {
 							contactsChannel <- tag[1]
 						}
@@ -122,17 +121,6 @@ var backupCmd = &cobra.Command{
 				}
 			}()
 		}
-
-		eoseCompleted := false
-		go func() {
-			for i, sub := range allSubs {
-				relayURL := sub.Relay.URL
-				<-sub.EndOfStoredEvents
-				fmt.Printf(">%-30s status: complete (relay %d of %d).\n", relayURL, i+1, len(allSubs))
-			}
-			eoseCompleted = true
-
-		}()
 
 		unixTime := time.Now().Unix()
 
@@ -149,26 +137,28 @@ var backupCmd = &cobra.Command{
 
 		for {
 			time.Sleep(5 * time.Second)
-			timeout := time.Now().After(startTime.Add(10 * time.Second))
-			if eoseCompleted || timeout {
+			timeout := time.Now().After(startTime.Add(20 * time.Second))
+			if timeout {
 				if timeout {
-					fmt.Println("timeout (10s) reached.")
+					log(fmt.Sprintln("timeout (20s) reached."))
 				}
-				fmt.Println("closing connections.")
+
+				log(fmt.Sprintf("closing connections."))
 				for _, sub := range allSubs {
+					log(fmt.Sprintf("closing subscription: %v on %s", sub.Filters, sub.Relay.URL))
 					sub.Unsub()
 				}
 				for _, relay := range allRelays {
-					relay.Close()
+					log(fmt.Sprintf("closing relay: %s ", relay.URL))
 				}
 
 				allContact = removeDupes(allContact)
 
-				fmt.Printf("...found %d contacts\n", len(allContact))
+				log(fmt.Sprintf("...found %d contacts", len(allContact)))
 
 				f, err := os.Create(fileName)
 				if err != nil {
-					fmt.Printf("Error opening file %s, %s; exiting", err, fileName)
+					log(fmt.Sprintf("Error opening file %s, %s; exiting", err, fileName))
 					os.Exit(1)
 				}
 				defer f.Close()
